@@ -1,3 +1,5 @@
+package adb.project;
+
 class Transaction {
     String id;
     int beginTime;
