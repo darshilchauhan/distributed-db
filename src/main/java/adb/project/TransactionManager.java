@@ -3,6 +3,7 @@ package adb.project;
 import java.util.*;
 
 public class TransactionManager {
+    int tick;
     DataManager dm;
     Map<String, Transaction> transactionMap;
     List<String> transactionList;
@@ -13,6 +14,7 @@ public class TransactionManager {
     Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remove
 
     TransactionManager(String inputFileString) {
+        tick = 0;
         this.inputFileString = inputFileString;
         dm = new DataManager();
         transactionMap = new HashMap<String, Transaction>();
@@ -68,10 +70,12 @@ public class TransactionManager {
         default:
             break;
         }
+        // TODO
         // if yes, execute and remove from q if readFromQ
         // if no, do nothing if read from q, add to q otherwise
     }
 
+    // get next operation either from queue or from file
     Operation getNextOperation() {
         // read from Q if applicable, otherwise call readNextEvent
         if (readFromQ) {
@@ -90,10 +94,40 @@ public class TransactionManager {
         }
     }
 
+    // read from file
     Operation readNextEvent() {
+        String line = readNextLine();
+        String[] op = line.split("[()]");
+        if (op[0].equals("begin")) {
+            return new OperationBE('B', tick++, op[1], false);
+        } else if (op[0].equals("beginRO")) {
+            return new OperationBE('B', tick++, op[1], false);
+        } else if (op[0].equals("end")) {
+            return new OperationBE('E', tick++, op[1], false);
+        } else if (op[0].equals("R")) {
+            String[] splits = op[1].split(",");
+            return new OperationRW('R', tick++, splits[0], Integer.parseInt(splits[1]), 0);
+        } else if (op[0].equals("W")) {
+            String[] splits = op[1].split(",");
+            return new OperationRW('W', tick++, splits[0], Integer.parseInt(splits[1]), Integer.parseInt(splits[2]));
+        } else if (op[0].equals("fail")) {
+            return new OperationFH('F', tick++, Integer.parseInt(op[1]));
+        } else if (op[0].equals("recover")) {
+            return new OperationFH('H', tick++, Integer.parseInt(op[1]));
+        } else if (op[0].equals("dump")) {
+            // dumpValues();
+            tick++;
+            return readNextEvent();
+        }
         return null;
     }
 
+    // get next line from file
+    String readNextLine() {
+
+    }
+
+    // this will be called from main in a loop
     void processNextOperation() {
         Operation op = getNextOperation();
         process(op);

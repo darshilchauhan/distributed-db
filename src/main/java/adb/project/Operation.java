@@ -32,4 +32,8 @@ public abstract class Operation {
     int getVal() {
         return 0;
     }
+
+    boolean isReadOnly() {
+        return false;
+    }
 }
