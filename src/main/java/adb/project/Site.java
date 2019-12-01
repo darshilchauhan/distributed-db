@@ -56,6 +56,14 @@ class Site {
         writeLockInfo = new HashMap<String, List<Integer>>();
     }
 
+    Set<Integer> getDesignatedVars() {
+        return designatedVars;
+    }
+
+    boolean isUp() {
+        return isUp;
+    }
+
     void resetReadLockTable() {
         readLockTable.clear();
         for (Integer var : designatedVars) {
