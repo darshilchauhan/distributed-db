@@ -1,15 +1,14 @@
 package adb.project;
 
-import Java.util.*;
-import Java.io.*;
-
-public void main(String[] args){
+public class Main {
+	public static void main(String[] args){
 	
-	String filename = args[1];
-	TransactionManager TM(filename);
-	Simulate(TM);
-}
-
-public void Simulate(TransactionManager TM){
-	while(TM.processNextOperation());
+		String fileName = args[1];
+		TransactionManager manager = new TransactionManager(fileName);
+		simulate(manager);
+	}
+	
+	public static void simulate(TransactionManager TM){
+		while(TM.processNextOperation());
+	}
 }
