@@ -31,6 +31,7 @@ Site:
 - bool getReadLock(int var, String transaction): If it is read or write-locked by same transaction, then return yes. If it is write-locked by some other transaction, return no. If it is read-locked by some other transaction, add this transaction to read-lock list and return yes.
 - int readVal(int var): return value from commitedValues
 - int writeVal(int var, int val): commitedValues[var-1]=val. Make this variable safe if it is not.
+  below four things not needed. Just need clear all locks for a transaction.
 - void releaseReadLock(int var, String transaction): release the lock for this var by this transaction. Update both locktable and lockInfo.
 - void releaseWriteLock(int var, String transaction): same as above.
 - void releaseReadLocks(String transaction): go through readLockInfo for this transaction and store all locked variables in a new list. Call releaseReadLock(var, transaction) for each lock.
