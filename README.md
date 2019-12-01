@@ -55,15 +55,15 @@ DM:
 TM:
 
 - DataManager DM
-- HashMap<String, Transaction> transactions: this transactionID belongs to this transaction object.
-- List<String> transactionList: list of IDs. In order of first come first served. For Deadlock.
-- HashMap<Integer, Queue<Operation>> operationQ: this variable has this queue of operations waiting to be executed
+- HashMap<String, Transaction> transactionMap: this transactionID belongs to this transaction object.
+- List<String> transactionList: list of IDs. In order of first come first served. for deciding which to abort. LinkedList because need to do only checking and removing.
+- Queue<Operation> operationQ: this variable has this queue of operations waiting to be executed
 - DeadLockMap: for detecting deadlocks.
 - String inputFileString
 - File inputFile
 
-- constructor TM(String inputFileString): initialize transactions as empty. Initialize transactionList as empty. Initialize operationQ with 20 variables and empty queue of operations. Initialize deadlockMap. Int
-- process(Operation op): F: call DM.fail(siteID). R: call DM.recover(siteID). For R and W try to execute the operation, if not possible, add it to the queue. E: releaseLocks(transaction)
+- constructor TM(String inputFileString): initialize transactionMap as empty. Initialize transactionList as empty. Initialize operationQ with 20 variables and empty queue of operations. Initialize deadlockMap. Int
+- process(Operation op): F: call DM.fail(siteID). R: call DM.recover(siteID). For R and W try to execute the operation, if not possible, add it to the queue. E: releaseLocks(transaction), B: begin transaction
 - Operation readNextEvent(): read next line and return if valid operation. otherwise call fail/recover/end(Ti)
 
 Transaction
@@ -81,8 +81,7 @@ TransactionRO extends class Transaction type="RO"
 Operation:
 
 - final int timeStamp
-- final char type
-- final char type: 'R', 'W', 'F' fail, 'C' recovery, 'E' end
+- final char type: 'R', 'W', 'F' fail, 'C' recovery, 'E' end, 'B' begin
 - final String transaction ID: empty if 'F' or 'C'
 - final int var: which variable to read or write, 0 if not 'R' or 'W'
 - final int val: Actual value if write. 0 for anything else.

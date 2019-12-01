@@ -31,24 +31,54 @@ public class DataManager {
         }
     }
 
-    boolean getReadLock(int var, String transaction) {
+    ReadLockResponse readVal(int var, String transaction) {
         List<Integer> locationList = varLocations.get(var);
+        ReadLockResponse response = null;
         for (Integer siteId : locationList) {
-            Site site = sites.get(siteId);
-            if (site.getReadLoack(var, transaction))
-                return true;
+            Site site = sites.get(siteId.intValue());
+            if (site.isUp()) {
+                ReadLockResponse siteResponse = site.readVal(var, transaction);
+                // if any response granted or safe, then return safe, o/w return unsafe
+                if (siteResponse.isGranted() || !siteResponse.isUnsafe()) {
+                    return siteResponse;
+                } else {
+                    response = siteResponse;
+                }
+            }
         }
-        return false;
+        return response;
+
     }
 
-    boolean getWriteLock(int var, String transaction) {
+    WriteLockResponse writeVal(int var, String transaction, int val) {
         List<Integer> locationList = varLocations.get(var);
+        boolean isNegativeResponse = false;
+        boolean anySafe = false;
+        List<String> guiltyTransactionIds = new ArrayList<String>();
         for (Integer siteId : locationList) {
-            Site site = sites.get(siteId);
-            if (site.getWriteLock(var, transaction))
-                return true;
+            Site site = sites.get(siteId.intValue());
+            if (site.isUp()) {
+                WriteLockResponse siteResponse = site.writeVal(var, transaction, val);
+                if (siteResponse.isGranted()) {
+                    // do nothing
+                } else {
+                    isNegativeResponse = true;
+                    if (!siteResponse.isUnsafe()) {
+                        anySafe = true;
+                        guiltyTransactionIds.addAll(siteResponse.getGuiltyTransactionIds());
+                    }
+                }
+            }
         }
-        return false;
+        if (!isNegativeResponse) {
+            return new WriteLockResponse(true, false, null);
+        } else {
+            if (anySafe) {
+                return new WriteLockResponse(false, false, guiltyTransactionIds);
+            } else {
+                return new WriteLockResponse(false, true, null);
+            }
+        }
     }
 
     void clearTransaction(String transaction) {

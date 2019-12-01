@@ -82,25 +82,20 @@ class Site {
         return commitedVals.getOrDefault(var, Integer.MIN_VALUE);
     }
 
-    void writeVal(int var, int val) {
-        commitedVals.put(var, val);
-        if (!safeVars.contains(var))
-            safeVars.add(var);
-    }
-
     // if writelocked, then return true or false depending on who holds the lock
     // if readlocked by this transaction, then return true
     // otherwise, assign lock and return true
-    boolean getReadLoack(int var, String transaction) {
+    ReadLockResponse readVal(int var, String transaction) {
+        ReadLockResponse yesResponse = new ReadLockResponse(true, false, readVal(var), "");
         if (!safeVars.contains(var))
-            return false;
+            return new ReadLockResponse(false, true, 0, "");
         if (writeLockTable.containsKey(var)) {
             if (writeLockTable.get(var).equals(transaction))
-                return true;
+                return yesResponse;
             else
-                return false;
+                return new ReadLockResponse(false, false, 0, writeLockTable.get(var));
         } else if (readLockTable.containsKey(var) && readLockTable.get(var).contains(transaction)) {
-            return true;
+            return yesResponse;
         } else {
             readLockTable.get(var).add(transaction);
             if (!readLockInfo.containsKey(transaction)) {
@@ -110,7 +105,7 @@ class Site {
             } else {
                 readLockInfo.get(transaction).add(var);
             }
-            return true;
+            return yesResponse;
         }
     }
 
@@ -118,14 +113,16 @@ class Site {
     // if readlocked by this transaction and no other transaction, then update to
     // writelock and return true
     // otherwise, assign writelock and return true
-    boolean getWriteLock(int var, String transaction) {
+    WriteLockResponse writeVal(int var, String transaction, int val) {
+        WriteLockResponse yesResponse = new WriteLockResponse(true, false, null);
         if (!safeVars.contains(var))
-            return false;
+            return new WriteLockResponse(false, true, null);
         if (writeLockTable.containsKey(var)) {
-            if (writeLockTable.get(var).equals(transaction))
-                return true;
-            else
-                return false;
+            if (writeLockTable.get(var).equals(transaction)) {
+                return yesResponse;
+            } else
+                return new WriteLockResponse(false, false,
+                        new ArrayList<String>(Arrays.asList(writeLockTable.get(var))));
         } else if (readLockTable.containsKey(var)) {
             if (readLockTable.get(var).contains(transaction) && readLockTable.get(var).size() == 1) {
                 // upgrade readlock to write lock
@@ -135,14 +132,21 @@ class Site {
                 readLockInfo.get(transaction).remove(Integer.valueOf(var));
                 // using Integer.valueOf so it deletes by object not index
                 writeLockInfo.get(transaction).add(var);
-                return true;
+                return yesResponse;
             } else {
-                return false;
+                List<String> guiltyTransactionIds = new ArrayList<String>();
+                for (String transactionId : readLockTable.get(var)) {
+                    if (transaction.equals(transactionId)) // if current transaction is in the list
+                        continue;
+                    else
+                        guiltyTransactionIds.add(transaction);
+                }
+                return new WriteLockResponse(false, false, guiltyTransactionIds);
             }
         } else {
             writeLockTable.put(var, transaction);
             writeLockInfo.get(transaction).add(var);
-            return true;
+            return yesResponse;
         }
     }
 
