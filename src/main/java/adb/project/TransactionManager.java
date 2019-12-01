@@ -12,7 +12,7 @@ public class TransactionManager {
     // DeadLock deadLock;
     BufferedReader reader;
     boolean readFromQ; // assign true if last operation was 'E', assign false when read from file
-    Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remove
+    Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remov
 
     TransactionManager(String inputFileString) {
         tick = 0;
@@ -126,7 +126,8 @@ public class TransactionManager {
         } else if (op[0].equals("recover")) {
             return new OperationFH('H', tick++, Integer.parseInt(op[1]));
         } else if (op[0].equals("dump")) {
-            // dumpValues();
+            String dumpOutput = dm.dumpValues();
+            System.out.println(dumpOutput);
             tick++;
             return readNextEvent();
         }
@@ -148,7 +149,7 @@ public class TransactionManager {
     boolean processNextOperation() {
         Operation op = getNextOperation();
         if (op == null) {
-            System.out.println("operation is null");
+            // System.out.println("operation is null");
             return false;
         }
         process(op);

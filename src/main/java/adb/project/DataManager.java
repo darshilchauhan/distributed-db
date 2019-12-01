@@ -116,4 +116,12 @@ public class DataManager {
         sites.get(siteId - 1).recover(safeVars);
     }
 
+    String dumpValues() {
+        StringBuilder answer = new StringBuilder();
+        for (Site site : sites) {
+            answer.append(site.dumpValues() + "\n");
+        }
+        return answer.toString();
+    }
+
 }

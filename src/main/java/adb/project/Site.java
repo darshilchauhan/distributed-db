@@ -215,4 +215,18 @@ class Site {
         safeVars.addAll(newSafeVars);
     }
 
+    String dumpValues() {
+        StringBuilder answer = new StringBuilder("site " + id + " - ");
+        List<Integer> vars = new ArrayList<>(commitedVals.keySet());
+        Collections.sort(vars);
+        for (int i = 0; i < vars.size(); i++) {
+            if (i != vars.size() - 1) {
+                answer.append("x" + vars.get(i) + ": " + commitedVals.get(vars.get(i)) + ", ");
+            } else {
+                answer.append("x" + vars.get(i) + ": " + commitedVals.get(vars.get(i)));
+            }
+        }
+        return answer.toString();
+    }
+
 }
