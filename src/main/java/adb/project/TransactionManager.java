@@ -1,5 +1,6 @@
 package adb.project;
 
+import java.io.*;
 import java.util.*;
 
 public class TransactionManager {
@@ -10,16 +11,17 @@ public class TransactionManager {
     List<Operation> operationQ;
     // DeadLock deadLock;
     String inputFileString;
+    BufferedReader reader;
     boolean readFromQ; // assign true if last operation was 'E', assign false when read from file
     Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remove
 
     TransactionManager(String inputFileString) {
         tick = 0;
-        this.inputFileString = inputFileString;
         dm = new DataManager();
         transactionMap = new HashMap<String, Transaction>();
         transactionList = new LinkedList<String>();
         operationQ = new ArrayList<Operation>();
+        reader = new BufferedReader(new FileReader(this.inputFileString));
         // deadlock = new DeadLock();
     }
 
@@ -124,7 +126,7 @@ public class TransactionManager {
 
     // get next line from file
     String readNextLine() {
-
+        String line = this.reader.readLine();
     }
 
     // this will be called from main in a loop
