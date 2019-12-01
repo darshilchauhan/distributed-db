@@ -10,6 +10,6 @@ public void main(String[] args){
 	Simulate(TM);
 }
 
-public void Simulate(ops){
-	
+public void Simulate(TransactionManager TM){
+	while(TM.processNextOperation());
 }
