@@ -102,7 +102,11 @@ public class TransactionManager {
     // read from file
     Operation readNextEvent() {
         String line = readNextLine();
+        if (line == null || line.equals(""))
+            return null;
         String[] op = line.split("[()]");
+        if (op.length < 1)
+            return null;
         if (op[0].equals("begin")) {
             return new OperationBE('B', tick++, op[1], false);
         } else if (op[0].equals("beginRO")) {
@@ -139,8 +143,12 @@ public class TransactionManager {
     }
 
     // this will be called from main in a loop
-    void processNextOperation() {
+    boolean processNextOperation() {
         Operation op = getNextOperation();
+        if (op == null) {
+            return false;
+        }
         process(op);
+        return true;
     }
 }
