@@ -30,6 +30,7 @@ public class TransactionManager {
 
     void process(Operation op) {
         // check if it can be executed
+        System.out.println("Inside process " + Character.toString(op.getType()));
         switch (op.getType()) {
         case 'B':
             Transaction transaction = new Transaction(op.getTransactionId(), op.getTimeStamp());
@@ -115,10 +116,11 @@ public class TransactionManager {
             return new OperationBE('E', tick++, op[1], false);
         } else if (op[0].equals("R")) {
             String[] splits = op[1].split(",");
-            return new OperationRW('R', tick++, splits[0], Integer.parseInt(splits[1]), 0);
+            return new OperationRW('R', tick++, splits[0], Integer.parseInt(splits[1].substring(1)), 0);
         } else if (op[0].equals("W")) {
             String[] splits = op[1].split(",");
-            return new OperationRW('W', tick++, splits[0], Integer.parseInt(splits[1]), Integer.parseInt(splits[2]));
+            return new OperationRW('W', tick++, splits[0], Integer.parseInt(splits[1].substring(1)),
+                    Integer.parseInt(splits[2]));
         } else if (op[0].equals("fail")) {
             return new OperationFH('F', tick++, Integer.parseInt(op[1]));
         } else if (op[0].equals("recover")) {
@@ -146,6 +148,7 @@ public class TransactionManager {
     boolean processNextOperation() {
         Operation op = getNextOperation();
         if (op == null) {
+            System.out.println("operation is null");
             return false;
         }
         process(op);

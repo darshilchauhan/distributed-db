@@ -22,6 +22,9 @@ public class DataManager {
                     locationList.add(i);
                 }
             }
+            // if (var == 1)
+            // System.out.println(Arrays.toString(locationList.toArray()));
+            varLocations.put(var, locationList);
         }
 
         sites = new ArrayList<Site>();
@@ -35,7 +38,7 @@ public class DataManager {
         List<Integer> locationList = varLocations.get(var);
         ReadLockResponse response = null;
         for (Integer siteId : locationList) {
-            Site site = sites.get(siteId.intValue());
+            Site site = sites.get(siteId.intValue() - 1);
             if (site.isUp()) {
                 ReadLockResponse siteResponse = site.readVal(var, transaction);
                 // if any response granted or safe, then return safe, o/w return unsafe
@@ -56,7 +59,7 @@ public class DataManager {
         boolean anySafe = false;
         List<String> guiltyTransactionIds = new ArrayList<String>();
         for (Integer siteId : locationList) {
-            Site site = sites.get(siteId.intValue());
+            Site site = sites.get(siteId.intValue() - 1);
             if (site.isUp()) {
                 WriteLockResponse siteResponse = site.writeVal(var, transaction, val);
                 if (siteResponse.isGranted()) {
@@ -88,7 +91,7 @@ public class DataManager {
     }
 
     void fail(int siteId) {
-        sites.get(siteId).fail();
+        sites.get(siteId - 1).fail();
     }
 
     void recover(int siteId) {
@@ -106,11 +109,11 @@ public class DataManager {
             safeVars.add(siteId + 9);
         } else {
             // add all vars
-            for (Integer var : sites.get(siteId).getDesignatedVars()) {
+            for (Integer var : sites.get(siteId - 1).getDesignatedVars()) {
                 safeVars.add(var.intValue());
             }
         }
-        sites.get(siteId).recover(safeVars);
+        sites.get(siteId - 1).recover(safeVars);
     }
 
 }

@@ -8,10 +8,10 @@ public class TestSingleRead {
     String fileName = System.getProperty("fileName");
 
     @Test
-    public void testLucky() {
-        assertEquals(7, 7);
-        // assertEquals(7, 8);
-        assertEquals(fileName, "blah");
+    public void testFirst() {
+        String[] args = { "self", "src/test/resources/SingleRead.txt" };
+        Main.main(args);
+        assertEquals(1, 1);
     }
 
 }

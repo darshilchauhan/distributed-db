@@ -31,12 +31,16 @@ class Site {
         for (int var = 1; var <= totalVars / 2; var++) {
             designatedVars.add(var * 2);
         }
-        designatedVars.add(this.id - 1);
-        designatedVars.add(this.id + 9);
+        if (id % 2 == 0) {
+            designatedVars.add(this.id - 1);
+            designatedVars.add(this.id + 9);
+        }
 
         commitedVals = new HashMap<Integer, Integer>();
         for (Integer var : designatedVars) {
             commitedVals.put(var, 10 * var);
+            // if (id == 3)
+            // System.out.println("--- " + var);
         }
 
         safeVars = new HashSet<Integer>();
@@ -87,13 +91,15 @@ class Site {
     // otherwise, assign lock and return true
     ReadLockResponse readVal(int var, String transaction) {
         ReadLockResponse yesResponse = new ReadLockResponse(true, false, readVal(var), "");
-        if (!safeVars.contains(var))
+        if (!safeVars.contains(var)) {
             return new ReadLockResponse(false, true, 0, "");
-        if (writeLockTable.containsKey(var)) {
-            if (writeLockTable.get(var).equals(transaction))
+        }
+        if (writeLockTable.containsKey(var) && !writeLockTable.get(var).equals("")) {
+            if (writeLockTable.get(var).equals(transaction)) {
                 return yesResponse;
-            else
+            } else {
                 return new ReadLockResponse(false, false, 0, writeLockTable.get(var));
+            }
         } else if (readLockTable.containsKey(var) && readLockTable.get(var).contains(transaction)) {
             return yesResponse;
         } else {
@@ -181,11 +187,15 @@ class Site {
 
     // to be called during end of transaction, to release all locks and info
     void clearTransaction(String transaction) {
-        for (Integer var : readLockInfo.get(transaction)) {
-            readLockTable.get(var).remove(transaction);
+        if (readLockInfo.get(transaction) != null) {
+            for (Integer var : readLockInfo.get(transaction)) {
+                readLockTable.get(var).remove(transaction);
+            }
         }
-        for (Integer var : writeLockInfo.get(transaction)) {
-            writeLockTable.put(var, "");
+        if (writeLockInfo.get(transaction) != null) {
+            for (Integer var : writeLockInfo.get(transaction)) {
+                writeLockTable.put(var, "");
+            }
         }
         readLockInfo.remove(transaction);
         writeLockInfo.remove(transaction);
