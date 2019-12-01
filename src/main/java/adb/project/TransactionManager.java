@@ -20,10 +20,9 @@ public class TransactionManager {
         transactionMap = new HashMap<String, Transaction>();
         transactionList = new LinkedList<String>();
         operationQ = new ArrayList<Operation>();
-        try{
+        try {
             reader = new BufferedReader(new FileReader(inputFileString));
-        }
-        catch (FileNotFoundException fe){
+        } catch (FileNotFoundException fe) {
             System.out.println("Exception thrown:" + fe);
         }
         // deadlock = new DeadLock();
@@ -130,7 +129,12 @@ public class TransactionManager {
 
     // get next line from file
     String readNextLine() {
-        String line = this.reader.readLine();
+        String line = null;
+        try {
+            line = this.reader.readLine();
+        } catch (Exception e) {
+            System.out.println("Exception thrown:" + e);
+        }
         return line;
     }
 
