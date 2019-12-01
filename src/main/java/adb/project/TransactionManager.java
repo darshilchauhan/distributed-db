@@ -10,7 +10,6 @@ public class TransactionManager {
     List<String> transactionList;
     List<Operation> operationQ;
     // DeadLock deadLock;
-    String inputFileString;
     BufferedReader reader;
     boolean readFromQ; // assign true if last operation was 'E', assign false when read from file
     Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remove
@@ -21,7 +20,12 @@ public class TransactionManager {
         transactionMap = new HashMap<String, Transaction>();
         transactionList = new LinkedList<String>();
         operationQ = new ArrayList<Operation>();
-        reader = new BufferedReader(new FileReader(this.inputFileString));
+        try{
+            reader = new BufferedReader(new FileReader(inputFileString));
+        }
+        catch (FileNotFoundException fe){
+            System.out.println("Exception thrown:" + fe);
+        }
         // deadlock = new DeadLock();
     }
 
@@ -127,6 +131,7 @@ public class TransactionManager {
     // get next line from file
     String readNextLine() {
         String line = this.reader.readLine();
+        return line;
     }
 
     // this will be called from main in a loop
