@@ -58,10 +58,14 @@ public class DataManager {
         boolean isNegativeResponse = false;
         boolean anySafe = false;
         List<String> guiltyTransactionIds = new ArrayList<String>();
+        boolean anyUp = false;
         for (Integer siteId : locationList) {
             Site site = sites.get(siteId.intValue() - 1);
             if (site.isUp()) {
+                anyUp = true;
                 WriteLockResponse siteResponse = site.writeVal(var, transaction, val);
+                // System.out.println("for writing x" + var + ", site " + site.getId() + " is
+                // up");
                 if (siteResponse.isGranted()) {
                     // do nothing
                 } else {
@@ -73,10 +77,10 @@ public class DataManager {
                 }
             }
         }
-        if (!isNegativeResponse) {
+        if (anyUp && !isNegativeResponse) {
             return new WriteLockResponse(true, false, null);
         } else {
-            if (anySafe) {
+            if (anyUp && anySafe) {
                 return new WriteLockResponse(false, false, guiltyTransactionIds);
             } else {
                 return new WriteLockResponse(false, true, null);

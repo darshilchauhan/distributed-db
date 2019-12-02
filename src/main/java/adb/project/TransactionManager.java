@@ -49,8 +49,12 @@ public class TransactionManager {
             break;
         case 'R':
             ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
+            Transaction currTransaction = transactionMap.get(op.getTransactionId());
             if (readResponse.isGranted()) {
-                System.out.println("x" + Integer.toString(op.getVar()) + ": " + readResponse.getVal());
+                int ans = readResponse.getVal();
+                if (currTransaction.hasModifiedVal(op.getVar()))
+                    ans = currTransaction.getModifiedVal(op.getVar());
+                System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
             } else if (!readResponse.isUnsafe()) {
                 operationQ.add(op);
                 // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
@@ -62,6 +66,7 @@ public class TransactionManager {
         case 'W':
             WriteLockResponse writeResponse = dm.writeVal(op.getVar(), op.getTransactionId(), op.getVal());
             if (writeResponse.isGranted()) {
+                transactionMap.get(op.getTransactionId()).addModifiedVal(op.getVar(), op.getVal());
                 System.out.println("written value x" + Integer.toString(op.getVar()) + ": " + op.getVal());
             } else if (!writeResponse.isUnsafe()) {
                 operationQ.add(op);
