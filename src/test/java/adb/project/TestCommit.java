@@ -4,11 +4,11 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class TestSingleRead {
+public class TestCommit {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/SingleRead.txt" };
+        String[] args = { "self", "src/test/resources/commit.txt" };
         Main.main(args);
         assertEquals(1, 1);
     }

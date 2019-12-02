@@ -33,19 +33,26 @@ public class TransactionManager {
         System.out.println("Inside process " + Character.toString(op.getType()));
         switch (op.getType()) {
         case 'B':
-            Transaction transaction = new Transaction(op.getTransactionId(), op.getTimeStamp());
-            transactionMap.put(op.getTransactionId(), transaction);
+            Transaction transactionB = new Transaction(op.getTransactionId(), op.getTimeStamp());
+            transactionMap.put(op.getTransactionId(), transactionB);
             transactionList.add(op.getTransactionId());
+            dm.beginTransactionRW(op.getTransactionId());
             break;
         case 'E':
-            dm.clearTransaction(op.getTransactionId());
-            // TODO: commit and abort logic
+            Transaction transactionE = transactionMap.get(op.getTransactionId());
+            if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
+                dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
+                System.out.println(op.getTransactionId() + " commits");
+            } else {
+                dm.abort(op.getTransactionId());
+                System.out.println(op.getTransactionId() + " aborts");
+            }
             break;
         case 'F':
-            dm.fail(op.getSiteId());
+            dm.fail(op.getSiteId(), op.getTimeStamp());
             break;
         case 'H':
-            dm.recover(op.getSiteId());
+            dm.recover(op.getSiteId(), op.getTimeStamp());
             break;
         case 'R':
             ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());

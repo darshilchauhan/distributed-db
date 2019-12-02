@@ -5,6 +5,8 @@ import java.util.*;
 class Site {
     int id;
     boolean isUp;
+    int lastRecoverTime;
+    int lastFailTime;
     int totalVars;
     Set<Integer> designatedVars;
     Map<Integer, Integer> commitedVals;
@@ -26,6 +28,8 @@ class Site {
         totalVars = 20;
         this.id = id;
         this.isUp = true;
+        this.lastRecoverTime = -1;
+        this.lastFailTime = -2;
 
         designatedVars = new HashSet<Integer>();
         for (int var = 1; var <= totalVars / 2; var++) {
@@ -72,6 +76,14 @@ class Site {
         return id;
     }
 
+    int getLastRecoverTime() {
+        return lastRecoverTime;
+    }
+
+    int getLastFailTime() {
+        return lastFailTime;
+    }
+
     void resetReadLockTable() {
         readLockTable.clear();
         for (Integer var : designatedVars) {
@@ -88,6 +100,11 @@ class Site {
 
     int readVal(int var) {
         return commitedVals.getOrDefault(var, Integer.MIN_VALUE);
+    }
+
+    // check if var is in designatedVars before calling
+    void writeValDirectly(int var, int val) {
+        commitedVals.put(var, val);
     }
 
     // if writelocked, then return true or false depending on who holds the lock
@@ -227,16 +244,18 @@ class Site {
         writeLockInfo.remove(transaction);
     }
 
-    void fail() {
+    void fail(int tick) {
         isUp = false;
+        lastFailTime = tick;
         resetReadLockTable();
         resetWriteLockTable();
         readLockInfo.clear();
         writeLockInfo.clear();
     }
 
-    void recover(Set<Integer> newSafeVars) {
+    void recover(Set<Integer> newSafeVars, int tick) {
         isUp = true;
+        lastRecoverTime = tick;
         safeVars.clear();
         safeVars.addAll(newSafeVars);
     }

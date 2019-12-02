@@ -1,0 +1,7 @@
+begin(T1)
+R(T1,x1)
+W(T1,x1,55)
+R(T1,x1)
+dump()
+end(T1)
+dump()

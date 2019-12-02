@@ -7,6 +7,7 @@ public class DataManager {
     List<Site> sites;
     int totalVars;
     int totalSites;
+    Map<String, List<Integer>> accessedSites;
 
     DataManager() {
         totalVars = 20;
@@ -32,6 +33,8 @@ public class DataManager {
             Site site = new Site(i);
             sites.add(site);
         }
+
+        accessedSites = new HashMap<String, List<Integer>>();
     }
 
     ReadLockResponse readVal(int var, String transaction) {
@@ -43,6 +46,8 @@ public class DataManager {
                 ReadLockResponse siteResponse = site.readVal(var, transaction);
                 // if any response granted or safe, then return safe, o/w return unsafe
                 if (siteResponse.isGranted() || !siteResponse.isUnsafe()) {
+                    if (siteResponse.isGranted())
+                        accessedSites.get(transaction).add(siteId);
                     return siteResponse;
                 } else {
                     response = siteResponse;
@@ -67,7 +72,7 @@ public class DataManager {
                 // System.out.println("for writing x" + var + ", site " + site.getId() + " is
                 // up");
                 if (siteResponse.isGranted()) {
-                    // do nothing
+                    accessedSites.get(transaction).add(siteId);
                 } else {
                     isNegativeResponse = true;
                     if (!siteResponse.isUnsafe()) {
@@ -94,11 +99,11 @@ public class DataManager {
         }
     }
 
-    void fail(int siteId) {
-        sites.get(siteId - 1).fail();
+    void fail(int siteId, int tick) {
+        sites.get(siteId - 1).fail(tick);
     }
 
-    void recover(int siteId) {
+    void recover(int siteId, int tick) {
         Set<Integer> safeVars = new HashSet<Integer>();
         boolean anySiteUp = false;
         for (Site site : sites) {
@@ -117,7 +122,43 @@ public class DataManager {
                 safeVars.add(var.intValue());
             }
         }
-        sites.get(siteId - 1).recover(safeVars);
+        sites.get(siteId - 1).recover(safeVars, tick);
+    }
+
+    void beginTransactionRW(String transactionId) {
+        accessedSites.put(transactionId, new ArrayList<Integer>());
+    }
+
+    boolean canCommit(String transactionId, int beginTime) {
+        List<Integer> transactionSites = accessedSites.get(transactionId);
+        for (Integer siteId : transactionSites) {
+            if (!sites.get(siteId).isUp() || sites.get(siteId).lastFailTime > beginTime) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void abort(String transactionId) {
+        List<Integer> transactionSites = accessedSites.get(transactionId);
+        for (Integer siteId : transactionSites) {
+            sites.get(siteId).clearTransaction(transactionId);
+        }
+        accessedSites.remove(transactionId);
+    }
+
+    void commit(String transactionId, Map<Integer, Integer> modifiedVals) {
+        List<Integer> transactionSites = accessedSites.get(transactionId);
+        for (Integer siteId : transactionSites) {
+            Site site = sites.get(siteId);
+            for (Integer modifiedVar : modifiedVals.keySet()) {
+                if (site.getDesignatedVars().contains(modifiedVar)) {
+                    site.writeValDirectly(modifiedVar, modifiedVals.get(modifiedVar));
+                }
+            }
+            site.clearTransaction(transactionId);
+        }
+        accessedSites.remove(transactionId);
     }
 
     String dumpValues() {

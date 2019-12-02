@@ -13,7 +13,7 @@ class Transaction {
         modifiedVals = new HashMap<Integer, Integer>();
     }
 
-    String getID() {
+    String getId() {
         return this.id;
     }
 
