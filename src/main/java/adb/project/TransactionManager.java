@@ -9,7 +9,7 @@ public class TransactionManager {
     Map<String, Transaction> transactionMap;
     List<String> transactionList;
     List<Operation> operationQ;
-    // DeadLock deadLock;
+    Deadlock deadlock;
     BufferedReader reader;
     boolean readFromQ; // assign true if last operation was 'E', assign false when read from file
     Integer indexInQ; // not NULL only when readFromQ, used to keep track of which op to remov
@@ -25,14 +25,41 @@ public class TransactionManager {
         } catch (FileNotFoundException fe) {
             System.out.println("Exception thrown:" + fe);
         }
-        // deadlock = new DeadLock();
+        deadlock = new Deadlock();
         readFromQ = false;
         indexInQ = null;
     }
 
+    boolean breakCycle() {
+        List<String> cycle = deadlock.findCycle();
+        if (!cycle.isEmpty()) {
+            System.out.println("cycle found");
+            String youngest = cycle.get(0);
+            int youngestTime = transactionMap.get(youngest).getBeginTime();
+            for (int i = 1; i < cycle.size(); i++) {
+                if (transactionMap.get(cycle.get(i)).getBeginTime() > youngestTime) {
+                    youngest = cycle.get(i);
+                    youngestTime = transactionMap.get(cycle.get(i)).getBeginTime();
+                }
+            }
+            deadlock.removeVertex(youngest);
+            for (int i = 0; i < operationQ.size(); i++) {
+                Operation opTemp = operationQ.get(i);
+                if (opTemp.getTransactionId().equals(youngest)) {
+                    operationQ.remove(i);
+                    i--;
+                }
+            }
+            dm.abort(youngest);
+            System.out.println(youngest + " aborts");
+            breakCycle();
+            return true;
+        }
+        return false;
+    }
+
     boolean process(Operation op) {
-        // check if it can be executed
-        // System.out.println("Inside process " + Character.toString(op.getType()));
+        // System.out.println("Inside proces " + op.getType());
         boolean result = true;
         switch (op.getType()) {
         case 'B':
@@ -47,6 +74,7 @@ public class TransactionManager {
             } else {
                 dm.beginTransactionRW(op.getTransactionId());
             }
+            deadlock.removeVertex(op.getTransactionId());
             break;
         case 'E':
             Transaction transactionE = transactionMap.get(op.getTransactionId());
@@ -61,9 +89,9 @@ public class TransactionManager {
                     System.out.println(op.getTransactionId() + " aborts");
                 }
             }
-
             transactionMap.remove(op.getTransactionId());
             transactionList.remove(op.getTransactionId());
+            deadlock.removeVertex(op.getTransactionId());
             break;
         case 'F':
             dm.fail(op.getSiteId(), op.getTimeStamp());
@@ -93,7 +121,7 @@ public class TransactionManager {
                     result = false;
                     if (!readResponse.isUnsafe()) {
                         operationQ.add(op);
-                        // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
+                        deadlock.addEdge(op.getTransactionId(), readResponse.getGuiltyTransactionId());
                     } else {
                         operationQ.add(op);
                         // TODO: what to do if can't read because of unsafe?
@@ -115,9 +143,9 @@ public class TransactionManager {
                 result = false;
                 if (!writeResponse.isUnsafe()) {
                     operationQ.add(op);
-                    // for (String guiltyTransactionId : writeResponse.getGuiltyTransactionIds()) {
-                    // deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
-                    // }
+                    for (String guiltyTransactionId : writeResponse.getGuiltyTransactionIds()) {
+                        deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
+                    }
                 } else {
                     operationQ.add(op);
                     // TODO: what to do if can't write because of unsafe?
@@ -155,6 +183,14 @@ public class TransactionManager {
 
     // get next operation either from queue or from file
     Operation getNextOperation() {
+        if (breakCycle()) {
+            // System.out.println("Cycle broken this time");
+            readFromQ = true;
+            indexInQ = 0;
+        } else {
+            // System.out.println("Cycle not broken this time");
+        }
+
         // read from Q if applicable, otherwise call readNextEvent
         if (readFromQ) {
             if (indexInQ >= operationQ.size()) {
