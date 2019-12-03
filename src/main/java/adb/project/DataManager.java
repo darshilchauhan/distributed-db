@@ -199,7 +199,8 @@ public class DataManager {
             // System.out.println("vars for site " + siteId + " " +
             // site.getDesignatedVars());
             for (Integer modifiedVar : modifiedVals.keySet()) {
-                if (site.getDesignatedVars().contains(modifiedVar)) {
+                // write only if site has that variable and transaction has write lock on it
+                if (site.getDesignatedVars().contains(modifiedVar) && site.hasWriteLock(modifiedVar, transactionId)) {
                     // System.out.println("Writing directly x" + modifiedVar + " to " +
                     // modifiedVals.get(modifiedVar));
                     site.writeValDirectly(modifiedVar.intValue(), modifiedVals.get(modifiedVar).intValue());

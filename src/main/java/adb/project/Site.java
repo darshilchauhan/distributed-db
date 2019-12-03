@@ -275,4 +275,20 @@ class Site {
         return answer.toString();
     }
 
+    boolean hasReadLock(int var, String transactionId) {
+        if (writeLockTable.containsKey(var) && readLockTable.get(var).contains(transactionId)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    boolean hasWriteLock(int var, String transactionId) {
+        if (writeLockTable.containsKey(var) && writeLockTable.get(var).equals(transactionId)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

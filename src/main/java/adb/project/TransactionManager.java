@@ -67,6 +67,7 @@ public class TransactionManager {
 
     boolean process(Operation op) {
         System.out.println("Inside process " + op.getType());
+        System.out.println("x8 at site 4" + dm.sites.get(3).commitedVals.get(8));
         // System.out.println(operationQ.size());
         if (operationQ.size() > 0)
             System.out.println(operationQ.get(0).getTransactionId() + " " + operationQ.get(0).getType());
