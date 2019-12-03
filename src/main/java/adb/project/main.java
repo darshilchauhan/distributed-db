@@ -10,6 +10,7 @@ public class Main {
 
 	public static void simulate(TransactionManager TM) {
 		// System.out.println("executing next operation");
-		while(TM.processNextOperation());
+		while (TM.processNextOperation()) {
+		}
 	}
 }

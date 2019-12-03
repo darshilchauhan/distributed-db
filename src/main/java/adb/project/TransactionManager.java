@@ -6,6 +6,7 @@ import java.util.*;
 public class TransactionManager {
     int tick;
     DataManager dm;
+    StringBuilder output;
     Map<String, Transaction> transactionMap;
     List<String> transactionList;
     List<Operation> operationQ;
@@ -17,6 +18,7 @@ public class TransactionManager {
     TransactionManager(String inputFileString) {
         tick = 0;
         dm = new DataManager();
+        output = new StringBuilder("");
         transactionMap = new HashMap<String, Transaction>();
         transactionList = new LinkedList<String>();
         operationQ = new ArrayList<Operation>();
@@ -33,7 +35,7 @@ public class TransactionManager {
     boolean breakCycle() {
         List<String> cycle = deadlock.findCycle();
         if (!cycle.isEmpty()) {
-            System.out.println("cycle found");
+            // System.out.println("cycle found");
             String youngest = cycle.get(0);
             int youngestTime = transactionMap.get(youngest).getBeginTime();
             for (int i = 1; i < cycle.size(); i++) {
@@ -51,7 +53,7 @@ public class TransactionManager {
                 }
             }
             dm.abort(youngest);
-            System.out.println(youngest + " aborts");
+            output.append(youngest + " aborts\n");
             breakCycle();
             return true;
         }
@@ -79,14 +81,14 @@ public class TransactionManager {
         case 'E':
             Transaction transactionE = transactionMap.get(op.getTransactionId());
             if (transactionE.isReadOnly()) {
-                System.out.println(op.getTransactionId() + " commits");
+                output.append(op.getTransactionId() + " commits\n");
             } else {
                 if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
-                    System.out.println(op.getTransactionId() + " commits");
+                    output.append(op.getTransactionId() + " commits\n");
                 } else {
                     dm.abort(op.getTransactionId());
-                    System.out.println(op.getTransactionId() + " aborts");
+                    output.append(op.getTransactionId() + " aborts\n");
                 }
             }
             transactionMap.remove(op.getTransactionId());
@@ -103,7 +105,7 @@ public class TransactionManager {
             Transaction currTransaction = transactionMap.get(op.getTransactionId());
             if (currTransaction.isReadOnly()) {
                 if (dm.anySiteUpForVar(op.getVar())) {
-                    System.out.println("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()));
+                    output.append("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()) + "\n");
                 } else {
                     operationQ.add(op);
                 }
@@ -116,7 +118,7 @@ public class TransactionManager {
                         ans = currTransaction.getModifiedVal(op.getVar());
                         // System.out.println("Reading from self-written");
                     }
-                    System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
+                    output.append("x" + Integer.toString(op.getVar()) + ": " + ans + "\n");
                 } else {
                     result = false;
                     if (!readResponse.isUnsafe()) {
@@ -236,7 +238,7 @@ public class TransactionManager {
             return new OperationFH('H', tick++, Integer.parseInt(op[1]));
         } else if (op[0].equals("dump")) {
             String dumpOutput = dm.dumpValues();
-            System.out.println(dumpOutput);
+            output.append(dumpOutput + "\n");
             tick++;
             return readNextEvent();
         }
@@ -250,6 +252,7 @@ public class TransactionManager {
             line = this.reader.readLine();
         } catch (Exception e) {
             System.out.println("Exception thrown:" + e);
+            System.exit(0);
         }
         return line;
     }
@@ -258,6 +261,7 @@ public class TransactionManager {
     boolean processNextOperation() {
         Operation op = getNextOperation();
         if (op == null) {
+            System.out.println(output.toString().trim());
             return false;
         }
         process(op);
