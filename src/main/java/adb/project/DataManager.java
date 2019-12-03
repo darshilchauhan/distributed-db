@@ -47,14 +47,14 @@ public class DataManager {
         return snapshot;
     }
 
-    // boolean anySiteUpForVar(int var) {
-    // for (Integer siteId : varLocations.get(var)) {
-    // if (sites.get(siteId - 1).isUp()) {
-    // return true;
-    // }
-    // }
-    // return false;
-    // }
+    boolean anySiteUpForVar(int var) {
+        for (Integer siteId : varLocations.get(var)) {
+            if (sites.get(siteId - 1).isUp()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     ReadLockResponse readVal(int var, String transaction) {
         List<Integer> locationList = varLocations.get(var);

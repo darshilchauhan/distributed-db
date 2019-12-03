@@ -74,11 +74,11 @@ public class TransactionManager {
         case 'R':
             Transaction currTransaction = transactionMap.get(op.getTransactionId());
             if (currTransaction.isReadOnly()) {
-                // if (dm.anySiteUpForVar(op.getVar())) {
-                System.out.println("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()));
-                // } else {
-                // operationQ.add(op);
-                // }
+                if (dm.anySiteUpForVar(op.getVar())) {
+                    System.out.println("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()));
+                } else {
+                    operationQ.add(op);
+                }
 
             } else {
                 ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
