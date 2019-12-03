@@ -32,24 +32,38 @@ public class TransactionManager {
 
     boolean process(Operation op) {
         // check if it can be executed
-        System.out.println("Inside process " + Character.toString(op.getType()));
+        // System.out.println("Inside process " + Character.toString(op.getType()));
         boolean result = true;
         switch (op.getType()) {
         case 'B':
-            Transaction transactionB = new Transaction(op.getTransactionId(), op.getTimeStamp());
+            Transaction transactionB = new Transaction(op.getTransactionId(), op.getTimeStamp(), op.isReadOnly());
             transactionMap.put(op.getTransactionId(), transactionB);
             transactionList.add(op.getTransactionId());
-            dm.beginTransactionRW(op.getTransactionId());
+            if (op.isReadOnly()) {
+                Map<Integer, Integer> snapshot = dm.getSnapshot();
+                for (Integer var : snapshot.keySet()) {
+                    transactionB.putSnapshotVal(var.intValue(), snapshot.get(var.intValue()).intValue());
+                }
+            } else {
+                dm.beginTransactionRW(op.getTransactionId());
+            }
             break;
         case 'E':
             Transaction transactionE = transactionMap.get(op.getTransactionId());
-            if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
-                dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
+            if (transactionE.isReadOnly()) {
                 System.out.println(op.getTransactionId() + " commits");
             } else {
-                dm.abort(op.getTransactionId());
-                System.out.println(op.getTransactionId() + " aborts");
+                if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
+                    dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
+                    System.out.println(op.getTransactionId() + " commits");
+                } else {
+                    dm.abort(op.getTransactionId());
+                    System.out.println(op.getTransactionId() + " aborts");
+                }
             }
+
+            transactionMap.remove(op.getTransactionId());
+            transactionList.remove(op.getTransactionId());
             break;
         case 'F':
             dm.fail(op.getSiteId(), op.getTimeStamp());
@@ -58,24 +72,33 @@ public class TransactionManager {
             dm.recover(op.getSiteId(), op.getTimeStamp());
             break;
         case 'R':
-            ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
             Transaction currTransaction = transactionMap.get(op.getTransactionId());
-            if (readResponse.isGranted()) {
-                int ans = readResponse.getVal();
-                if (currTransaction.hasModifiedVal(op.getVar())) {
-                    ans = currTransaction.getModifiedVal(op.getVar());
-                    // System.out.println("Reading from self-written");
-                }
-                System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
+            if (currTransaction.isReadOnly()) {
+                // if (dm.anySiteUpForVar(op.getVar())) {
+                System.out.println("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()));
+                // } else {
+                // operationQ.add(op);
+                // }
+
             } else {
-                result = false;
-                if (!readResponse.isUnsafe()) {
-                    operationQ.add(op);
-                    // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
+                ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
+                if (readResponse.isGranted()) {
+                    int ans = readResponse.getVal();
+                    if (currTransaction.hasModifiedVal(op.getVar())) {
+                        ans = currTransaction.getModifiedVal(op.getVar());
+                        // System.out.println("Reading from self-written");
+                    }
+                    System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
                 } else {
-                    operationQ.add(op);
-                    // TODO: what to do if can't read because of unsafe?
-                    // for now, skipping the operation
+                    result = false;
+                    if (!readResponse.isUnsafe()) {
+                        operationQ.add(op);
+                        // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
+                    } else {
+                        operationQ.add(op);
+                        // TODO: what to do if can't read because of unsafe?
+                        // for now, skipping the operation
+                    }
                 }
             }
             break;
@@ -158,7 +181,7 @@ public class TransactionManager {
         if (op[0].equals("begin")) {
             return new OperationBE('B', tick++, op[1], false);
         } else if (op[0].equals("beginRO")) {
-            return new OperationBE('B', tick++, op[1], false);
+            return new OperationBE('B', tick++, op[1], true);
         } else if (op[0].equals("end")) {
             return new OperationBE('E', tick++, op[1], false);
         } else if (op[0].equals("R")) {
@@ -198,7 +221,7 @@ public class TransactionManager {
         if (op == null) {
             return false;
         }
-        boolean result = process(op);
+        process(op);
         return true;
     }
 }

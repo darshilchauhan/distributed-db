@@ -8,6 +8,7 @@ public class DataManager {
     int totalVars;
     int totalSites;
     Map<String, List<Integer>> accessedSites;
+    Map<Integer, Integer> snapshot;
 
     DataManager() {
         totalVars = 20;
@@ -35,7 +36,25 @@ public class DataManager {
         }
 
         accessedSites = new HashMap<String, List<Integer>>();
+        snapshot = new HashMap<Integer, Integer>();
+        for (int i = 1; i <= totalVars; i++) {
+            snapshot.put(i, i * 10);
+        }
+
     }
+
+    Map<Integer, Integer> getSnapshot() {
+        return snapshot;
+    }
+
+    // boolean anySiteUpForVar(int var) {
+    // for (Integer siteId : varLocations.get(var)) {
+    // if (sites.get(siteId - 1).isUp()) {
+    // return true;
+    // }
+    // }
+    // return false;
+    // }
 
     ReadLockResponse readVal(int var, String transaction) {
         List<Integer> locationList = varLocations.get(var);
@@ -74,8 +93,9 @@ public class DataManager {
                 // System.out.println("for writing x" + var + ", site " + site.getId() + " is
                 // up");
                 if (siteResponse.isGranted()) {
-                    if (!accessedSites.get(transaction).contains(siteId.intValue()))
+                    if (!accessedSites.get(transaction).contains(siteId.intValue())) {
                         accessedSites.get(transaction).add(siteId.intValue());
+                    }
                 } else {
                     isNegativeResponse = true;
                     if (!siteResponse.isUnsafe()) {
@@ -167,8 +187,9 @@ public class DataManager {
                 if (site.getDesignatedVars().contains(modifiedVar)) {
                     // System.out.println("Writing directly x" + modifiedVar + " to " +
                     // modifiedVals.get(modifiedVar));
-                    site.writeValDirectly(modifiedVar, modifiedVals.get(modifiedVar));
+                    site.writeValDirectly(modifiedVar.intValue(), modifiedVals.get(modifiedVar).intValue());
                 }
+                snapshot.put(modifiedVar.intValue(), modifiedVals.get(modifiedVar).intValue());
             }
             site.clearTransaction(transactionId);
         }

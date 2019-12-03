@@ -6,11 +6,15 @@ class Transaction {
     String id;
     int beginTime;
     Map<Integer, Integer> modifiedVals;
+    boolean readOnly;
+    Map<Integer, Integer> snapshot;
 
-    Transaction(String id, int beginTime) {
+    Transaction(String id, int beginTime, boolean readOnly) {
         this.id = id;
         this.beginTime = beginTime;
         modifiedVals = new HashMap<Integer, Integer>();
+        this.readOnly = readOnly;
+        snapshot = new HashMap<Integer, Integer>();
     }
 
     String getId() {
@@ -19,6 +23,18 @@ class Transaction {
 
     int getBeginTime() {
         return this.beginTime;
+    }
+
+    boolean isReadOnly() {
+        return readOnly;
+    }
+
+    int getSnapshotVal(int var) {
+        return snapshot.get(var);
+    }
+
+    void putSnapshotVal(int var, int val) {
+        snapshot.put(var, val);
     }
 
     Map<Integer, Integer> getModifiedVals() {
