@@ -144,13 +144,10 @@ class Site {
     // otherwise, assign writelock and return true
     WriteLockResponse writeVal(int var, String transaction, int val) {
         WriteLockResponse yesResponse = new WriteLockResponse(true, false, null);
-        if (!safeVars.contains(var)) {
-            // System.out.println("Unsafe");
-            return new WriteLockResponse(false, true, null);
-        }
         if (writeLockTable.containsKey(var) && !writeLockTable.get(var).equals("")) {
             if (writeLockTable.get(var).equals(transaction)) {
                 // System.out.println("already write lock");
+                safeVars.add(var);
                 return yesResponse;
             } else
                 // System.out.println("Some other write lock");
@@ -176,6 +173,7 @@ class Site {
                 }
 
                 // System.out.println("Upgrade from readLock. Yes.");
+                safeVars.add(var);
                 return yesResponse;
             } else {
                 List<String> guiltyTransactionIds = new ArrayList<String>();

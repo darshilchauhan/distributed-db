@@ -27,14 +27,48 @@ public class TestSample {
     }
 
     @Test
-    public void testFirst() {
+    public void test1() {
+        System.out.println("Test1 Output:");
         TransactionManager manager = new TransactionManager(samplesFolder + "test1.txt");
         while (manager.processNextOperation()) {
         }
-        // System.out.println("TM output:\n" + manager.output.toString().trim());
-        // System.out.println("\n\n\nFile output:\n" + getFileContent(samplesFolder +
-        // "out1.txt").trim());
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out1.txt").trim());
+    }
+
+    @Test
+    public void test2() {
+        System.out.println("\nTest2 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test2.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out2.txt").trim());
+    }
+
+    @Test
+    public void test3() {
+        System.out.println("\nTest3 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test3.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out3.txt").trim());
+    }
+
+    @Test
+    public void test3_5() {
+        System.out.println("\nTest3_5 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test3_5.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out3_5.txt").trim());
+    }
+
+    @Test
+    public void test3_7() {
+        System.out.println("\nTest3_7 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test3_7.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out3_7.txt").trim());
     }
 
 }

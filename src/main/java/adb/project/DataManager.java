@@ -92,6 +92,8 @@ public class DataManager {
                 WriteLockResponse siteResponse = site.writeVal(var, transaction, val);
                 // System.out.println("for writing x" + var + ", site " + site.getId() + " is
                 // up");
+                // System.out.println("site " + siteId + " " + siteResponse.isGranted() + " " +
+                // siteResponse.isUnsafe());
                 if (siteResponse.isGranted()) {
                     if (!accessedSites.get(transaction).contains(siteId.intValue())) {
                         accessedSites.get(transaction).add(siteId.intValue());
@@ -159,6 +161,9 @@ public class DataManager {
             // System.out.println("lastfailtime of " + siteId + " is " + sites.get(siteId -
             // 1).lastFailTime);
             if (!sites.get(siteId - 1).isUp() || sites.get(siteId - 1).lastFailTime > beginTime) {
+                // if (transactionId.equals("T1"))
+                // System.out.println("cant commit, accessed: " +
+                // Arrays.toString(transactionSites.toArray()));
                 return false;
             }
         }

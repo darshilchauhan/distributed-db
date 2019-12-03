@@ -1,0 +1,4 @@
+x3: 30
+x3: 30
+T2 aborts
+T1 commits
