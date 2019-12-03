@@ -26,11 +26,14 @@ public class TransactionManager {
             System.out.println("Exception thrown:" + fe);
         }
         // deadlock = new DeadLock();
+        readFromQ = false;
+        indexInQ = null;
     }
 
-    void process(Operation op) {
+    boolean process(Operation op) {
         // check if it can be executed
         System.out.println("Inside process " + Character.toString(op.getType()));
+        boolean result = true;
         switch (op.getType()) {
         case 'B':
             Transaction transactionB = new Transaction(op.getTransactionId(), op.getTimeStamp());
@@ -59,50 +62,82 @@ public class TransactionManager {
             Transaction currTransaction = transactionMap.get(op.getTransactionId());
             if (readResponse.isGranted()) {
                 int ans = readResponse.getVal();
-                if (currTransaction.hasModifiedVal(op.getVar()))
+                if (currTransaction.hasModifiedVal(op.getVar())) {
                     ans = currTransaction.getModifiedVal(op.getVar());
+                    // System.out.println("Reading from self-written");
+                }
                 System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
-            } else if (!readResponse.isUnsafe()) {
-                operationQ.add(op);
-                // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
             } else {
-                // TODO: what to do if can't read because of unsafe?
-                // for now, skipping the operation
+                result = false;
+                if (!readResponse.isUnsafe()) {
+                    operationQ.add(op);
+                    // deadlock.addEdge(op.getTransactionId(),readResponse.getGuiltyTransactionId());
+                } else {
+                    operationQ.add(op);
+                    // TODO: what to do if can't read because of unsafe?
+                    // for now, skipping the operation
+                }
             }
             break;
         case 'W':
             WriteLockResponse writeResponse = dm.writeVal(op.getVar(), op.getTransactionId(), op.getVal());
+            // System.out.println("Write operation, value: " + op.getVal());
             if (writeResponse.isGranted()) {
-                transactionMap.get(op.getTransactionId()).addModifiedVal(op.getVar(), op.getVal());
-                System.out.println("written value x" + Integer.toString(op.getVar()) + ": " + op.getVal());
-            } else if (!writeResponse.isUnsafe()) {
-                operationQ.add(op);
-                // for (String guiltyTransactionId : writeResponse.getGuiltyTransactionIds()) {
-                // deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
-                // }
+                transactionMap.get(op.getTransactionId()).putModifiedVal(op.getVar(), op.getVal());
+                // System.out.println("written value x" + op.getVar() + ": "
+                // + transactionMap.get(op.getTransactionId()).getModifiedVal(op.getVar()) + "
+                // for transaction "
+                // + op.getTransactionId());
             } else {
-                // TODO: what to do if can't write because of unsafe?
-                // for now, skipping the operation
+                result = false;
+                if (!writeResponse.isUnsafe()) {
+                    operationQ.add(op);
+                    // for (String guiltyTransactionId : writeResponse.getGuiltyTransactionIds()) {
+                    // deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
+                    // }
+                } else {
+                    operationQ.add(op);
+                    // TODO: what to do if can't write because of unsafe?
+                    // for now, skipping the operation
+                }
             }
             break;
         default:
             break;
         }
-        // TODO
-        // if yes, execute and remove from q if readFromQ
-        // if no, do nothing if read from q, add to q otherwise
+
+        // if this op was read from Q, update
+        if (readFromQ) {
+            if (result) {
+                // remove successful operation
+                // System.out.println("Before removing, size: " + operationQ.size());
+                // System.out.println("IndexInQ is " + indexInQ);
+                // System.out.println(Arrays.toString(operationQ.toArray()));
+                operationQ.remove(indexInQ.intValue());
+                // System.out.println(Arrays.toString(operationQ.toArray()));
+                // System.out.println("after removing, size: " + operationQ.size());
+            } else {
+                // go to next operation in queue
+                indexInQ++;
+            }
+        }
+        // if this op is E or H, read from beginning of queue
+        if (op.getType() == 'E' || op.getType() == 'H') {
+            readFromQ = true;
+            indexInQ = 0;
+        }
+        return result;
+
     }
 
     // get next operation either from queue or from file
     Operation getNextOperation() {
         // read from Q if applicable, otherwise call readNextEvent
         if (readFromQ) {
-            if (indexInQ == null)
-                indexInQ = 0;
-            else
-                indexInQ++;
             if (indexInQ >= operationQ.size()) {
+                // System.out.println("Setting readFromQ false");
                 readFromQ = false;
+                indexInQ = null;
                 return getNextOperation();
             } else {
                 return operationQ.get(indexInQ);
@@ -161,10 +196,9 @@ public class TransactionManager {
     boolean processNextOperation() {
         Operation op = getNextOperation();
         if (op == null) {
-            // System.out.println("operation is null");
             return false;
         }
-        process(op);
+        boolean result = process(op);
         return true;
     }
 }

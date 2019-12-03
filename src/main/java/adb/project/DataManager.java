@@ -39,15 +39,17 @@ public class DataManager {
 
     ReadLockResponse readVal(int var, String transaction) {
         List<Integer> locationList = varLocations.get(var);
-        ReadLockResponse response = null;
+        ReadLockResponse response = new ReadLockResponse(false, false, 0, null);
         for (Integer siteId : locationList) {
             Site site = sites.get(siteId.intValue() - 1);
             if (site.isUp()) {
                 ReadLockResponse siteResponse = site.readVal(var, transaction);
                 // if any response granted or safe, then return safe, o/w return unsafe
                 if (siteResponse.isGranted() || !siteResponse.isUnsafe()) {
-                    if (siteResponse.isGranted())
-                        accessedSites.get(transaction).add(siteId);
+                    if (siteResponse.isGranted()) {
+                        if (!accessedSites.get(transaction).contains(siteId.intValue()))
+                            accessedSites.get(transaction).add(siteId);
+                    }
                     return siteResponse;
                 } else {
                     response = siteResponse;
@@ -72,7 +74,8 @@ public class DataManager {
                 // System.out.println("for writing x" + var + ", site " + site.getId() + " is
                 // up");
                 if (siteResponse.isGranted()) {
-                    accessedSites.get(transaction).add(siteId);
+                    if (!accessedSites.get(transaction).contains(siteId.intValue()))
+                        accessedSites.get(transaction).add(siteId.intValue());
                 } else {
                     isNegativeResponse = true;
                     if (!siteResponse.isUnsafe()) {
@@ -132,7 +135,10 @@ public class DataManager {
     boolean canCommit(String transactionId, int beginTime) {
         List<Integer> transactionSites = accessedSites.get(transactionId);
         for (Integer siteId : transactionSites) {
-            if (!sites.get(siteId).isUp() || sites.get(siteId).lastFailTime > beginTime) {
+            // System.out.println("begintime of " + transactionId + " is " + beginTime);
+            // System.out.println("lastfailtime of " + siteId + " is " + sites.get(siteId -
+            // 1).lastFailTime);
+            if (!sites.get(siteId - 1).isUp() || sites.get(siteId - 1).lastFailTime > beginTime) {
                 return false;
             }
         }
@@ -142,17 +148,25 @@ public class DataManager {
     void abort(String transactionId) {
         List<Integer> transactionSites = accessedSites.get(transactionId);
         for (Integer siteId : transactionSites) {
-            sites.get(siteId).clearTransaction(transactionId);
+            sites.get(siteId - 1).clearTransaction(transactionId);
         }
         accessedSites.remove(transactionId);
     }
 
     void commit(String transactionId, Map<Integer, Integer> modifiedVals) {
         List<Integer> transactionSites = accessedSites.get(transactionId);
+        // System.out.println("TransactionSites: " +
+        // Arrays.toString(transactionSites.toArray()));
+        // System.out.println("modifiedVals KeySet: " + modifiedVals.keySet());
+        // System.out.println("modifiedVal for x1: " + modifiedVals.get(1));
         for (Integer siteId : transactionSites) {
-            Site site = sites.get(siteId);
+            Site site = sites.get(siteId - 1);
+            // System.out.println("vars for site " + siteId + " " +
+            // site.getDesignatedVars());
             for (Integer modifiedVar : modifiedVals.keySet()) {
                 if (site.getDesignatedVars().contains(modifiedVar)) {
+                    // System.out.println("Writing directly x" + modifiedVar + " to " +
+                    // modifiedVals.get(modifiedVar));
                     site.writeValDirectly(modifiedVar, modifiedVals.get(modifiedVar));
                 }
             }

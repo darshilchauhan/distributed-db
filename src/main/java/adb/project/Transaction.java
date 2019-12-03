@@ -25,7 +25,7 @@ class Transaction {
         return modifiedVals;
     }
 
-    void addModifiedVal(int var, int val) {
+    void putModifiedVal(int var, int val) {
         modifiedVals.put(var, val);
     }
 
