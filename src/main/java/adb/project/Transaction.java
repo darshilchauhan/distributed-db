@@ -8,6 +8,7 @@ class Transaction {
     Map<Integer, Integer> modifiedVals;
     boolean readOnly;
     Map<Integer, Integer> snapshot;
+    boolean markedForAbort;
 
     Transaction(String id, int beginTime, boolean readOnly) {
         this.id = id;
@@ -15,6 +16,7 @@ class Transaction {
         modifiedVals = new HashMap<Integer, Integer>();
         this.readOnly = readOnly;
         snapshot = new HashMap<Integer, Integer>();
+        markedForAbort = false;
     }
 
     String getId() {
@@ -55,5 +57,13 @@ class Transaction {
 
     void clearModifiedVals() {
         modifiedVals.clear();
+    }
+
+    void markForAbort() {
+        markedForAbort = true;
+    }
+
+    boolean isMarkedForAbort() {
+        return markedForAbort;
     }
 }

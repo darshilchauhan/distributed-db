@@ -26,32 +26,38 @@ public class TestSample {
         return fileOutput.toString().trim();
     }
 
-    @Test
-    public void test1() {
-        System.out.println("Test1 Output:");
-        TransactionManager manager = new TransactionManager(samplesFolder + "test1.txt");
-        while (manager.processNextOperation()) {
-        }
-        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out1.txt").trim());
-    }
+    // @Test
+    // public void test1() {
+    // System.out.println("Test1 Output:");
+    // TransactionManager manager = new TransactionManager(samplesFolder +
+    // "test1.txt");
+    // while (manager.processNextOperation()) {
+    // }
+    // assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder +
+    // "out1.txt").trim());
+    // }
 
-    @Test
-    public void test2() {
-        System.out.println("\nTest2 Output:");
-        TransactionManager manager = new TransactionManager(samplesFolder + "test2.txt");
-        while (manager.processNextOperation()) {
-        }
-        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out2.txt").trim());
-    }
+    // @Test
+    // public void test2() {
+    // System.out.println("\nTest2 Output:");
+    // TransactionManager manager = new TransactionManager(samplesFolder +
+    // "test2.txt");
+    // while (manager.processNextOperation()) {
+    // }
+    // assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder +
+    // "out2.txt").trim());
+    // }
 
-    @Test
-    public void test3() {
-        System.out.println("\nTest3 Output:");
-        TransactionManager manager = new TransactionManager(samplesFolder + "test3.txt");
-        while (manager.processNextOperation()) {
-        }
-        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out3.txt").trim());
-    }
+    // @Test
+    // public void test3() {
+    // System.out.println("\nTest3 Output:");
+    // TransactionManager manager = new TransactionManager(samplesFolder +
+    // "test3.txt");
+    // while (manager.processNextOperation()) {
+    // }
+    // assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder +
+    // "out3.txt").trim());
+    // }
 
     @Test
     public void test3_5() {

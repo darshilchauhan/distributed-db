@@ -124,8 +124,15 @@ public class DataManager {
         }
     }
 
-    void fail(int siteId, int tick) {
+    List<String> failAndGetAffectedTransactionIds(int siteId, int tick) {
         sites.get(siteId - 1).fail(tick);
+        List<String> transactionsToAbort = new ArrayList<String>();
+        for (String transactionId : accessedSites.keySet()) {
+            if (accessedSites.get(transactionId).contains(siteId)) {
+                transactionsToAbort.add(transactionId);
+            }
+        }
+        return transactionsToAbort;
     }
 
     void recover(int siteId, int tick) {
@@ -155,12 +162,15 @@ public class DataManager {
     }
 
     boolean canCommit(String transactionId, int beginTime) {
+        System.out.println("accessing sites for " + transactionId);
         List<Integer> transactionSites = accessedSites.get(transactionId);
         for (Integer siteId : transactionSites) {
             // System.out.println("begintime of " + transactionId + " is " + beginTime);
             // System.out.println("lastfailtime of " + siteId + " is " + sites.get(siteId -
             // 1).lastFailTime);
-            if (!sites.get(siteId - 1).isUp() || sites.get(siteId - 1).lastFailTime > beginTime) {
+            // if (!sites.get(siteId - 1).isUp() || sites.get(siteId - 1).lastFailTime >
+            // beginTime) {
+            if (!sites.get(siteId - 1).isUp()) {
                 // if (transactionId.equals("T1"))
                 // System.out.println("cant commit, accessed: " +
                 // Arrays.toString(transactionSites.toArray()));

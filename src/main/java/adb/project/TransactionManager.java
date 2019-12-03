@@ -62,11 +62,11 @@ public class TransactionManager {
         }
         dm.abort(transactionId);
         output.append(transactionId + " aborts\n");
-        // System.out.println(transactionId + " aborts");
+        System.out.println(transactionId + " aborts");
     }
 
     boolean process(Operation op) {
-        // System.out.println("Inside process " + op.getType());
+        System.out.println("Inside process " + op.getType());
         // System.out.println(operationQ.size());
         if (operationQ.size() > 0)
             System.out.println(operationQ.get(0).getTransactionId() + " " + operationQ.get(0).getType());
@@ -90,12 +90,14 @@ public class TransactionManager {
             Transaction transactionE = transactionMap.get(op.getTransactionId());
             if (transactionE.isReadOnly()) {
                 output.append(op.getTransactionId() + " commits\n");
-                // System.out.println(op.getTransactionId() + " commits\n");
+                System.out.println(op.getTransactionId() + " commits\n");
             } else {
-                if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
+                if (transactionMap.get(op.getTransactionId()).isMarkedForAbort()) {
+                    abortTransaction(op.getTransactionId());
+                } else if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
                     output.append(op.getTransactionId() + " commits\n");
-                    // System.out.println(op.getTransactionId() + " commits\n");
+                    System.out.println(op.getTransactionId() + " commits\n");
                 } else {
                     abortTransaction(op.getTransactionId());
                 }
@@ -105,7 +107,10 @@ public class TransactionManager {
             deadlock.removeVertex(op.getTransactionId());
             break;
         case 'F':
-            dm.fail(op.getSiteId(), op.getTimeStamp());
+            List<String> transactionsToAbort = dm.failAndGetAffectedTransactionIds(op.getSiteId(), op.getTimeStamp());
+            for (String transactionToAbort : transactionsToAbort) {
+                transactionMap.get(transactionToAbort).markForAbort();
+            }
             break;
         case 'H':
             dm.recover(op.getSiteId(), op.getTimeStamp());
