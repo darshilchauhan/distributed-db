@@ -173,9 +173,12 @@ public class TransactionManager {
     // read from file
     Operation readNextEvent() {
         String line = readNextLine();
-        if (line == null || line.equals(""))
+        if (line == null || line.trim().equals(""))
             return null;
         String[] op = line.split("[()]");
+        for (int i = 0; i < op.length; i++) {
+            op[i] = op[i].replaceAll("\\s+", "");
+        }
         if (op.length < 1)
             return null;
         if (op[0].equals("begin")) {
