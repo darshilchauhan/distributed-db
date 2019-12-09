@@ -67,7 +67,7 @@ public class TransactionManager {
 
     boolean process(Operation op) {
         System.out.println("Inside process " + op.getType());
-        System.out.println("x8 at site 4" + dm.sites.get(3).commitedVals.get(8));
+        // System.out.println("x8 at site 4" + dm.sites.get(3).commitedVals.get(8));
         // System.out.println(operationQ.size());
         if (operationQ.size() > 0)
             System.out.println(operationQ.get(0).getTransactionId() + " " + operationQ.get(0).getType());
@@ -94,12 +94,14 @@ public class TransactionManager {
                 System.out.println(op.getTransactionId() + " commits\n");
             } else {
                 if (transactionMap.get(op.getTransactionId()).isMarkedForAbort()) {
+                    System.out.println(op.getTransactionId() + " is marked for abort");
                     abortTransaction(op.getTransactionId());
                 } else if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
                     output.append(op.getTransactionId() + " commits\n");
                     System.out.println(op.getTransactionId() + " commits\n");
                 } else {
+                    System.out.println(op.getTransactionId() + " aborted because went into else");
                     abortTransaction(op.getTransactionId());
                 }
             }
@@ -168,9 +170,8 @@ public class TransactionManager {
             break;
         case 'W':
             WriteLockResponse writeResponse = dm.writeVal(op.getVar(), op.getTransactionId(), op.getVal());
-            // System.out.println("----Write operation, value: " + op.getVal());
-            // System.out.println(writeResponse.isGranted() + " " +
-            // writeResponse.isUnsafe());
+            System.out.println("----Write operation, value: " + op.getVal());
+            System.out.println(writeResponse.isGranted() + " " + writeResponse.isUnsafe());
             if (writeResponse.isGranted()) {
                 transactionMap.get(op.getTransactionId()).putModifiedVal(op.getVar(), op.getVal());
                 // System.out.println("Write operation, value: " + op.getVal());
@@ -184,6 +185,10 @@ public class TransactionManager {
                     if (!operationQ.contains(op)) {
                         operationQ.add(op);
                         for (String guiltyTransactionId : writeResponse.getGuiltyTransactionIds()) {
+                            if (op.getTransactionId().equals(guiltyTransactionId)) {
+                                continue;
+                            }
+                            System.out.println("adding edge " + op.getTransactionId() + " to " + guiltyTransactionId);
                             deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
                         }
                     }
