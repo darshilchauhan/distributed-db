@@ -181,7 +181,7 @@ class Site {
                     if (transaction.equals(transactionId)) // if current transaction is in the list
                         continue;
                     else
-                        guiltyTransactionIds.add(transaction);
+                        guiltyTransactionIds.add(transactionId);
                 }
                 // System.out.println("Other readLocks. No.");
                 return new WriteLockResponse(false, false, guiltyTransactionIds);
