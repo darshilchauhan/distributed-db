@@ -99,15 +99,25 @@ public class TestSample {
     }
 
     // @Test
-    // public void test7() {
-    // System.out.println("\nTest7 Output:");
+    // public void test6_2() {
+    // System.out.println("\nTest6_2 Output:");
     // TransactionManager manager = new TransactionManager(samplesFolder +
-    // "test7.txt");
+    // "test6_2.txt");
     // while (manager.processNextOperation()) {
     // }
-    // assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder +
-    // "out7.txt").trim());
+    // // assertEquals(manager.output.toString().trim(),
+    // getFileContent(samplesFolder +
+    // // "out6_2.txt").trim());
     // }
+
+    @Test
+    public void test7() {
+        System.out.println("\nTest7 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test7.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out7.txt").trim());
+    }
 
     // @Test
     // public void test8() {

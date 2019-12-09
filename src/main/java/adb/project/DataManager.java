@@ -217,7 +217,7 @@ public class DataManager {
         for (Site site : sites) {
             answer.append(site.dumpValues() + "\n");
         }
-        return answer.toString();
+        return answer.toString().trim();
     }
 
 }

@@ -133,6 +133,12 @@ public class TransactionManager {
                 }
 
             } else {
+                // TODO: check if a write is in the queue, if so reply no
+                // for (Operation opToCheck: operationQ) {
+                // if(opToCheck.getVar()==op.getVar()) {
+                // result = false;
+                // }
+                // }
                 ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
                 if (readResponse.isGranted()) {
                     int ans = readResponse.getVal();
