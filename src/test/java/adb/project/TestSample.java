@@ -251,4 +251,14 @@ public class TestSample {
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out21.txt").trim());
     }
 
+    @Test
+    public void test22() {
+        // readonly should wait if no site up
+        System.out.println("\nTest22 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test22.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out22.txt").trim());
+    }
+
 }
