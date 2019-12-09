@@ -236,4 +236,13 @@ public class TestSample {
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out20.txt").trim());
     }
 
+    @Test
+    public void test21() {
+        System.out.println("\nTest21 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test21.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out21.txt").trim());
+    }
+
 }
