@@ -115,6 +115,7 @@ class Site {
     ReadLockResponse readVal(int var, String transaction) {
         ReadLockResponse yesResponse = new ReadLockResponse(true, false, readVal(var), "");
         if (!safeVars.contains(var)) {
+            System.out.println("readVal: x" + var + " is unsafe on site " + this.id);
             return new ReadLockResponse(false, true, 0, "");
         }
         if (writeLockTable.containsKey(var) && !writeLockTable.get(var).equals("")) {
@@ -196,6 +197,7 @@ class Site {
                 writeLockInfo.get(transaction).add(var);
             }
             // System.out.println("No locks. Yes.");
+            safeVars.add(var);
             return yesResponse;
         }
     }

@@ -66,12 +66,11 @@ public class TransactionManager {
     }
 
     boolean process(Operation op) {
-        // System.out.println("Inside process " + op.getType());
+        System.out.println("Inside process " + op.getType());
         // System.out.println("x8 at site 4" + dm.sites.get(3).commitedVals.get(8));
-        // System.out.println(operationQ.size());
+        System.out.println(operationQ.size());
         if (operationQ.size() > 0) {
-            // System.out.println(operationQ.get(0).getTransactionId() + " " +
-            // operationQ.get(0).getType());
+            System.out.println(operationQ.get(0).getTransactionId() + " " + operationQ.get(0).getType());
         }
         boolean result = true;
         switch (op.getType()) {
@@ -93,18 +92,17 @@ public class TransactionManager {
             Transaction transactionE = transactionMap.get(op.getTransactionId());
             if (transactionE.isReadOnly()) {
                 output.append(op.getTransactionId() + " commits\n");
-                // System.out.println(op.getTransactionId() + " commits\n");
+                System.out.println(op.getTransactionId() + " commits\n");
             } else {
                 if (transactionMap.get(op.getTransactionId()).isMarkedForAbort()) {
-                    // System.out.println(op.getTransactionId() + " is marked for abort");
+                    System.out.println(op.getTransactionId() + " is marked for abort");
                     abortTransaction(op.getTransactionId());
                 } else if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
                     output.append(op.getTransactionId() + " commits\n");
-                    // System.out.println(op.getTransactionId() + " commits\n");
+                    System.out.println(op.getTransactionId() + " commits\n");
                 } else {
-                    // System.out.println(op.getTransactionId() + " aborted because went into
-                    // else");
+                    System.out.println(op.getTransactionId() + " aborted because went into else");
                     abortTransaction(op.getTransactionId());
                 }
             }
@@ -128,13 +126,19 @@ public class TransactionManager {
                     output.append("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()) + "\n");
                     // System.out.println("x" + op.getVar() + ": " +
                     // currTransaction.getSnapshotVal(op.getVar()));
-                    if (readFromQ)
+                    if (readFromQ) {
                         operationQ.remove(indexInQ.intValue());
+                        System.out.println("Removing " + indexInQ + "th Operation from Q");
+                    }
                 } else {
-                    if (readFromQ)
+                    if (readFromQ) {
+                        System.out.println("increasing indexQ. Before increase: " + indexInQ);
                         indexInQ++;
-                    if (!operationQ.contains(op))
+                    }
+                    if (!operationQ.contains(op)) {
+                        System.out.println("adding current operation to Q");
                         operationQ.add(op);
+                    }
                 }
 
             } else {
@@ -153,20 +157,26 @@ public class TransactionManager {
                     }
                     output.append("x" + Integer.toString(op.getVar()) + ": " + ans + "\n");
                     // System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
-                    if (readFromQ)
+                    if (readFromQ) {
+                        System.out.println("Removing " + indexInQ + "th Operation from Q");
                         operationQ.remove(indexInQ.intValue());
+                    }
                 } else {
                     result = false;
-                    if (readFromQ)
+                    if (readFromQ) {
+                        System.out.println("increasing indexQ. Before increase: " + indexInQ);
                         indexInQ++;
+                    }
                     if (!readResponse.isUnsafe()) {
                         if (!operationQ.contains(op)) {
                             operationQ.add(op);
                             deadlock.addEdge(op.getTransactionId(), readResponse.getGuiltyTransactionId());
                         }
                     } else {
-                        if (!operationQ.contains(op))
+                        if (!operationQ.contains(op)) {
+                            System.out.println("adding current operation to Q");
                             operationQ.add(op);
+                        }
                     }
                 }
             }
@@ -179,11 +189,15 @@ public class TransactionManager {
             if (writeResponse.isGranted()) {
                 transactionMap.get(op.getTransactionId()).putModifiedVal(op.getVar(), op.getVal());
                 // System.out.println("Write operation, value: " + op.getVal());
-                if (readFromQ)
+                if (readFromQ) {
+                    System.out.println("Removing " + indexInQ + "th Operation from Q");
                     operationQ.remove(indexInQ.intValue());
+                }
             } else {
-                if (readFromQ)
+                if (readFromQ) {
+                    System.out.println("increasing indexQ. Before increase: " + indexInQ);
                     indexInQ++;
+                }
                 result = false;
                 if (!writeResponse.isUnsafe()) {
                     if (!operationQ.contains(op)) {
@@ -198,8 +212,10 @@ public class TransactionManager {
                         }
                     }
                 } else {
-                    if (!operationQ.contains(op))
+                    if (!operationQ.contains(op)) {
+                        System.out.println("adding current operation to Q");
                         operationQ.add(op);
+                    }
                 }
             }
             break;

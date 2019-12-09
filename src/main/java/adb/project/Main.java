@@ -3,9 +3,14 @@ package adb.project;
 public class Main {
 	public static void main(String[] args) {
 
-		String fileName = args[0];
-		TransactionManager manager = new TransactionManager(fileName);
-		simulate(manager);
+		for (int i = 0; i < args.length; i++) {
+			String fileName = args[i];
+			System.out.println("Processing file: " + fileName);
+			TransactionManager manager = new TransactionManager(fileName);
+			simulate(manager);
+			System.out.println();
+		}
+
 	}
 
 	public static void simulate(TransactionManager TM) {

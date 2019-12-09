@@ -98,17 +98,14 @@ public class TestSample {
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out6.txt").trim());
     }
 
-    // @Test
-    // public void test6_2() {
-    // System.out.println("\nTest6_2 Output:");
-    // TransactionManager manager = new TransactionManager(samplesFolder +
-    // "test6_2.txt");
-    // while (manager.processNextOperation()) {
-    // }
-    // // assertEquals(manager.output.toString().trim(),
-    // getFileContent(samplesFolder +
-    // // "out6_2.txt").trim());
-    // }
+    @Test
+    public void test6_2() {
+        System.out.println("\nTest6_2 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test6_2.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out6_2.txt").trim());
+    }
 
     @Test
     public void test7() {
@@ -234,6 +231,15 @@ public class TestSample {
         while (manager.processNextOperation()) {
         }
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out20.txt").trim());
+    }
+
+    @Test
+    public void test20_2() {
+        System.out.println("\nTest20_2 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test20_2.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out20_2.txt").trim());
     }
 
     @Test
