@@ -8,7 +8,7 @@ public class TestDeadlockAbort {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/deadlockAbort.txt" };
+        String[] args = { "src/test/resources/deadlockAbort.txt" };
         Main.main(args);
     }
 }

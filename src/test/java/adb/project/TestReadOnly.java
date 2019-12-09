@@ -8,7 +8,7 @@ public class TestReadOnly {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/readonly.txt" };
+        String[] args = { "src/test/resources/readonly.txt" };
         Main.main(args);
     }
 

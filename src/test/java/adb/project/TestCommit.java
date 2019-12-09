@@ -8,7 +8,7 @@ public class TestCommit {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/commit.txt" };
+        String[] args = { "src/test/resources/commit.txt" };
         Main.main(args);
         assertEquals(1, 1);
     }

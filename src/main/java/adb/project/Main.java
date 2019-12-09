@@ -3,7 +3,7 @@ package adb.project;
 public class Main {
 	public static void main(String[] args) {
 
-		String fileName = args[1];
+		String fileName = args[0];
 		TransactionManager manager = new TransactionManager(fileName);
 		simulate(manager);
 	}

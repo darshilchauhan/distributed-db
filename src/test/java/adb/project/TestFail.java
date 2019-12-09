@@ -8,7 +8,7 @@ public class TestFail {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/fail.txt" };
+        String[] args = { "src/test/resources/fail.txt" };
         Main.main(args);
     }
 

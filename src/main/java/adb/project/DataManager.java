@@ -162,7 +162,7 @@ public class DataManager {
     }
 
     boolean canCommit(String transactionId, int beginTime) {
-        System.out.println("accessing sites for " + transactionId);
+        // System.out.println("accessing sites for " + transactionId);
         List<Integer> transactionSites = accessedSites.get(transactionId);
         for (Integer siteId : transactionSites) {
             // System.out.println("begintime of " + transactionId + " is " + beginTime);

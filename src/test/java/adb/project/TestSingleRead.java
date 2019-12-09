@@ -8,7 +8,7 @@ public class TestSingleRead {
 
     @Test
     public void testFirst() {
-        String[] args = { "self", "src/test/resources/SingleRead.txt" };
+        String[] args = { "src/test/resources/SingleRead.txt" };
         Main.main(args);
         assertEquals(1, 1);
     }
