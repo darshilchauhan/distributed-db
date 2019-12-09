@@ -45,14 +45,14 @@ public class TransactionManager {
                 }
             }
             deadlock.removeVertex(youngest);
-            abortTransaction(youngest);
+            abortTransaction(youngest, "Deadlock");
             breakCycle();
             return true;
         }
         return false;
     }
 
-    void abortTransaction(String transactionId) {
+    void abortTransaction(String transactionId, String reason) {
         for (int i = 0; i < operationQ.size(); i++) {
             Operation opTemp = operationQ.get(i);
             if (opTemp.getTransactionId().equals(transactionId)) {
@@ -62,6 +62,7 @@ public class TransactionManager {
         }
         dm.abort(transactionId);
         output.append(transactionId + " aborts\n");
+        output.append("Reason for abort: " + reason + "\n");
         // System.out.println(transactionId + " aborts");
     }
 
@@ -96,14 +97,14 @@ public class TransactionManager {
             } else {
                 if (transactionMap.get(op.getTransactionId()).isMarkedForAbort()) {
                     System.out.println(op.getTransactionId() + " is marked for abort");
-                    abortTransaction(op.getTransactionId());
+                    abortTransaction(op.getTransactionId(), "Site failure");
                 } else if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
                     output.append(op.getTransactionId() + " commits\n");
                     System.out.println(op.getTransactionId() + " commits\n");
                 } else {
                     System.out.println(op.getTransactionId() + " aborted because went into else");
-                    abortTransaction(op.getTransactionId());
+                    abortTransaction(op.getTransactionId(), "Site failure");
                 }
             }
             transactionMap.remove(op.getTransactionId());
