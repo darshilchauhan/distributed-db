@@ -261,4 +261,14 @@ public class TestSample {
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out22.txt").trim());
     }
 
+    @Test
+    public void test23() {
+        // read should wait if write is waiting, even if shared readlock possible
+        System.out.println("\nTest23 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test23.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out23.txt").trim());
+    }
+
 }

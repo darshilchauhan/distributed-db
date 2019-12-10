@@ -143,13 +143,21 @@ public class TransactionManager {
                 }
 
             } else {
-                // TODO: check if a write is in the queue, if so reply no
-                // for (Operation opToCheck: operationQ) {
-                // if(opToCheck.getVar()==op.getVar()) {
-                // result = false;
-                // }
-                // }
-                ReadLockResponse readResponse = dm.readVal(op.getVar(), op.getTransactionId());
+                // check if a write is in the queue, if so reply no
+                boolean isWriteInQ = false;
+                List<String> guiltyTransactionIdsWrite = new ArrayList<String>();
+                for (Operation opToCheck : operationQ) {
+                    if (opToCheck.getVar() == op.getVar() && opToCheck.getType() == 'W') {
+                        isWriteInQ = true;
+                        guiltyTransactionIdsWrite.add(opToCheck.getTransactionId());
+                    }
+                }
+                ReadLockResponse readResponse;
+                if (isWriteInQ) {
+                    readResponse = new ReadLockResponse(false, false, 0, guiltyTransactionIdsWrite);
+                } else {
+                    readResponse = dm.readVal(op.getVar(), op.getTransactionId());
+                }
                 if (readResponse.isGranted()) {
                     int ans = readResponse.getVal();
                     if (currTransaction.hasModifiedVal(op.getVar())) {
@@ -171,7 +179,14 @@ public class TransactionManager {
                     if (!readResponse.isUnsafe()) {
                         if (!operationQ.contains(op)) {
                             operationQ.add(op);
-                            deadlock.addEdge(op.getTransactionId(), readResponse.getGuiltyTransactionId());
+                            for (String guiltyTransactionId : readResponse.getGuiltyTransactionIds()) {
+                                if (op.getTransactionId().equals(guiltyTransactionId)) {
+                                    continue;
+                                }
+                                // System.out.println("adding edge " + op.getTransactionId() + " to " +
+                                // guiltyTransactionId);
+                                deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
+                            }
                         }
                     } else {
                         if (!operationQ.contains(op)) {
@@ -189,7 +204,7 @@ public class TransactionManager {
             // writeResponse.isUnsafe());
             if (writeResponse.isGranted()) {
                 transactionMap.get(op.getTransactionId()).putModifiedVal(op.getVar(), op.getVal());
-                // System.out.println("Write operation, value: " + op.getVal());
+                System.out.println("Write operation, value: " + op.getVal());
                 if (readFromQ) {
                     System.out.println("Removing " + indexInQ + "th Operation from Q");
                     operationQ.remove(indexInQ.intValue());

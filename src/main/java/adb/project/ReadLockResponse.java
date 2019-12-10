@@ -1,16 +1,18 @@
 package adb.project;
 
+import java.util.*;
+
 public class ReadLockResponse {
     boolean granted;
     boolean unsafe;
     int val;
-    String guiltyTransactionId;
+    List<String> guiltyTransactionIds;
 
-    ReadLockResponse(boolean granted, boolean unsafe, int val, String guiltyTransactionId) {
+    ReadLockResponse(boolean granted, boolean unsafe, int val, List<String> guiltyTransactionIds) {
         this.granted = granted;
         this.unsafe = unsafe;
         this.val = val;
-        this.guiltyTransactionId = guiltyTransactionId;
+        this.guiltyTransactionIds = guiltyTransactionIds;
     }
 
     boolean isGranted() {
@@ -25,7 +27,7 @@ public class ReadLockResponse {
         return val;
     }
 
-    String getGuiltyTransactionId() {
-        return guiltyTransactionId;
+    List<String> getGuiltyTransactionIds() {
+        return guiltyTransactionIds;
     }
 }

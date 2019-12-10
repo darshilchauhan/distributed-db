@@ -113,16 +113,17 @@ class Site {
     // if readlocked by this transaction, then return true
     // otherwise, assign lock and return true
     ReadLockResponse readVal(int var, String transaction) {
-        ReadLockResponse yesResponse = new ReadLockResponse(true, false, readVal(var), "");
+        ReadLockResponse yesResponse = new ReadLockResponse(true, false, readVal(var), null);
         if (!safeVars.contains(var)) {
             System.out.println("readVal: x" + var + " is unsafe on site " + this.id);
-            return new ReadLockResponse(false, true, 0, "");
+            return new ReadLockResponse(false, true, 0, null);
         }
         if (writeLockTable.containsKey(var) && !writeLockTable.get(var).equals("")) {
             if (writeLockTable.get(var).equals(transaction)) {
                 return yesResponse;
             } else {
-                return new ReadLockResponse(false, false, 0, writeLockTable.get(var));
+                return new ReadLockResponse(false, false, 0,
+                        new ArrayList<String>(Arrays.asList(writeLockTable.get(var))));
             }
         } else if (readLockTable.containsKey(var) && readLockTable.get(var).contains(transaction)) {
             return yesResponse;
