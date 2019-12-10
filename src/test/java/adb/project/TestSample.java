@@ -271,4 +271,14 @@ public class TestSample {
         assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out23.txt").trim());
     }
 
+    @Test
+    public void test24() {
+        // if last command of file triggers something, check that the trigger executes
+        System.out.println("\nTest24 Output:");
+        TransactionManager manager = new TransactionManager(samplesFolder + "test24.txt");
+        while (manager.processNextOperation()) {
+        }
+        assertEquals(manager.output.toString().trim(), getFileContent(samplesFolder + "out24.txt").trim());
+    }
+
 }

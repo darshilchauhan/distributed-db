@@ -63,16 +63,10 @@ public class TransactionManager {
         dm.abort(transactionId);
         output.append(transactionId + " aborts\n");
         output.append("Reason for abort: " + reason + "\n");
-        // System.out.println(transactionId + " aborts");
     }
 
     boolean process(Operation op) {
-        System.out.println("Inside process " + op.getType());
-        // System.out.println("x8 at site 4" + dm.sites.get(3).commitedVals.get(8));
-        System.out.println(operationQ.size());
-        if (operationQ.size() > 0) {
-            System.out.println(operationQ.get(0).getTransactionId() + " " + operationQ.get(0).getType());
-        }
+        // System.out.println("Inside process " + op.getType());
         boolean result = true;
         switch (op.getType()) {
         case 'B':
@@ -93,17 +87,13 @@ public class TransactionManager {
             Transaction transactionE = transactionMap.get(op.getTransactionId());
             if (transactionE.isReadOnly()) {
                 output.append(op.getTransactionId() + " commits\n");
-                System.out.println(op.getTransactionId() + " commits\n");
             } else {
                 if (transactionMap.get(op.getTransactionId()).isMarkedForAbort()) {
-                    System.out.println(op.getTransactionId() + " is marked for abort");
                     abortTransaction(op.getTransactionId(), "Site failure");
                 } else if (dm.canCommit(op.getTransactionId(), transactionE.getBeginTime())) {
                     dm.commit(op.getTransactionId(), transactionE.getModifiedVals());
                     output.append(op.getTransactionId() + " commits\n");
-                    System.out.println(op.getTransactionId() + " commits\n");
                 } else {
-                    System.out.println(op.getTransactionId() + " aborted because went into else");
                     abortTransaction(op.getTransactionId(), "Site failure");
                 }
             }
@@ -125,19 +115,14 @@ public class TransactionManager {
             if (currTransaction.isReadOnly()) {
                 if (dm.anySiteUpForVar(op.getVar())) {
                     output.append("x" + op.getVar() + ": " + currTransaction.getSnapshotVal(op.getVar()) + "\n");
-                    // System.out.println("x" + op.getVar() + ": " +
-                    // currTransaction.getSnapshotVal(op.getVar()));
                     if (readFromQ) {
                         operationQ.remove(indexInQ.intValue());
-                        System.out.println("Removing " + indexInQ + "th Operation from Q");
                     }
                 } else {
                     if (readFromQ) {
-                        System.out.println("increasing indexQ. Before increase: " + indexInQ);
                         indexInQ++;
                     }
                     if (!operationQ.contains(op)) {
-                        System.out.println("adding current operation to Q");
                         operationQ.add(op);
                     }
                 }
@@ -162,18 +147,14 @@ public class TransactionManager {
                     int ans = readResponse.getVal();
                     if (currTransaction.hasModifiedVal(op.getVar())) {
                         ans = currTransaction.getModifiedVal(op.getVar());
-                        // System.out.println("Reading from self-written");
                     }
                     output.append("x" + Integer.toString(op.getVar()) + ": " + ans + "\n");
-                    // System.out.println("x" + Integer.toString(op.getVar()) + ": " + ans);
                     if (readFromQ) {
-                        System.out.println("Removing " + indexInQ + "th Operation from Q");
                         operationQ.remove(indexInQ.intValue());
                     }
                 } else {
                     result = false;
                     if (readFromQ) {
-                        System.out.println("increasing indexQ. Before increase: " + indexInQ);
                         indexInQ++;
                     }
                     if (!readResponse.isUnsafe()) {
@@ -183,14 +164,11 @@ public class TransactionManager {
                                 if (op.getTransactionId().equals(guiltyTransactionId)) {
                                     continue;
                                 }
-                                // System.out.println("adding edge " + op.getTransactionId() + " to " +
-                                // guiltyTransactionId);
                                 deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
                             }
                         }
                     } else {
                         if (!operationQ.contains(op)) {
-                            System.out.println("adding current operation to Q");
                             operationQ.add(op);
                         }
                     }
@@ -199,19 +177,13 @@ public class TransactionManager {
             break;
         case 'W':
             WriteLockResponse writeResponse = dm.writeVal(op.getVar(), op.getTransactionId(), op.getVal());
-            // System.out.println("----Write operation, value: " + op.getVal());
-            // System.out.println(writeResponse.isGranted() + " " +
-            // writeResponse.isUnsafe());
             if (writeResponse.isGranted()) {
                 transactionMap.get(op.getTransactionId()).putModifiedVal(op.getVar(), op.getVal());
-                System.out.println("Write operation, value: " + op.getVal());
                 if (readFromQ) {
-                    System.out.println("Removing " + indexInQ + "th Operation from Q");
                     operationQ.remove(indexInQ.intValue());
                 }
             } else {
                 if (readFromQ) {
-                    System.out.println("increasing indexQ. Before increase: " + indexInQ);
                     indexInQ++;
                 }
                 result = false;
@@ -222,14 +194,11 @@ public class TransactionManager {
                             if (op.getTransactionId().equals(guiltyTransactionId)) {
                                 continue;
                             }
-                            // System.out.println("adding edge " + op.getTransactionId() + " to " +
-                            // guiltyTransactionId);
                             deadlock.addEdge(op.getTransactionId(), guiltyTransactionId);
                         }
                     }
                 } else {
                     if (!operationQ.contains(op)) {
-                        System.out.println("adding current operation to Q");
                         operationQ.add(op);
                     }
                 }
@@ -239,15 +208,6 @@ public class TransactionManager {
             break;
         }
 
-        // if this op was read from Q, update
-        // if (readFromQ) {
-        // if (result) {
-        // operationQ.remove(indexInQ.intValue());
-        // } else {
-        // // go to next operation in queue
-        // indexInQ++;
-        // }
-        // }
         // if this op is E or H, read from beginning of queue
         if (op.getType() == 'E' || op.getType() == 'H') {
             readFromQ = true;
@@ -260,17 +220,13 @@ public class TransactionManager {
     // get next operation either from queue or from file
     Operation getNextOperation() {
         if (breakCycle()) {
-            // System.out.println("Cycle broken this time");
             readFromQ = true;
             indexInQ = 0;
-        } else {
-            // System.out.println("Cycle not broken this time");
         }
 
         // read from Q if applicable, otherwise call readNextEvent
         if (readFromQ) {
             if (indexInQ >= operationQ.size()) {
-                // System.out.println("Setting readFromQ false");
                 readFromQ = false;
                 indexInQ = null;
                 return getNextOperation();
@@ -313,7 +269,6 @@ public class TransactionManager {
         } else if (op[0].equals("dump")) {
             String dumpOutput = dm.dumpValues();
             output.append(dumpOutput + "\n");
-            // System.out.println(dumpOutput);
             tick++;
             return readNextEvent();
         }
