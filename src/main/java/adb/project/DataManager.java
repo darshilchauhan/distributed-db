@@ -24,8 +24,6 @@ public class DataManager {
                     locationList.add(i);
                 }
             }
-            // if (var == 1)
-            // System.out.println(Arrays.toString(locationList.toArray()));
             varLocations.put(var, locationList);
         }
 
@@ -90,10 +88,6 @@ public class DataManager {
             if (site.isUp()) {
                 anyUp = true;
                 WriteLockResponse siteResponse = site.writeVal(var, transaction, val);
-                // System.out.println("for writing x" + var + ", site " + site.getId() + " is
-                // up");
-                // System.out.println("site " + siteId + " " + siteResponse.isGranted() + " " +
-                // siteResponse.isUnsafe());
                 if (siteResponse.isGranted()) {
                     if (!accessedSites.get(transaction).contains(siteId.intValue())) {
                         accessedSites.get(transaction).add(siteId.intValue());
@@ -162,18 +156,9 @@ public class DataManager {
     }
 
     boolean canCommit(String transactionId, int beginTime) {
-        // System.out.println("accessing sites for " + transactionId);
         List<Integer> transactionSites = accessedSites.get(transactionId);
         for (Integer siteId : transactionSites) {
-            // System.out.println("begintime of " + transactionId + " is " + beginTime);
-            // System.out.println("lastfailtime of " + siteId + " is " + sites.get(siteId -
-            // 1).lastFailTime);
-            // if (!sites.get(siteId - 1).isUp() || sites.get(siteId - 1).lastFailTime >
-            // beginTime) {
             if (!sites.get(siteId - 1).isUp()) {
-                // if (transactionId.equals("T1"))
-                // System.out.println("cant commit, accessed: " +
-                // Arrays.toString(transactionSites.toArray()));
                 return false;
             }
         }
@@ -190,19 +175,11 @@ public class DataManager {
 
     void commit(String transactionId, Map<Integer, Integer> modifiedVals) {
         List<Integer> transactionSites = accessedSites.get(transactionId);
-        // System.out.println("TransactionSites: " +
-        // Arrays.toString(transactionSites.toArray()));
-        // System.out.println("modifiedVals KeySet: " + modifiedVals.keySet());
-        // System.out.println("modifiedVal for x1: " + modifiedVals.get(1));
         for (Integer siteId : transactionSites) {
             Site site = sites.get(siteId - 1);
-            // System.out.println("vars for site " + siteId + " " +
-            // site.getDesignatedVars());
             for (Integer modifiedVar : modifiedVals.keySet()) {
                 // write only if site has that variable and transaction has write lock on it
                 if (site.getDesignatedVars().contains(modifiedVar) && site.hasWriteLock(modifiedVar, transactionId)) {
-                    // System.out.println("Writing directly x" + modifiedVar + " to " +
-                    // modifiedVals.get(modifiedVar));
                     site.writeValDirectly(modifiedVar.intValue(), modifiedVals.get(modifiedVar).intValue());
                 }
                 snapshot.put(modifiedVar.intValue(), modifiedVals.get(modifiedVar).intValue());
